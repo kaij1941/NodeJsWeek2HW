@@ -4,7 +4,11 @@
   "description": "NodeJs直播課程第二周主線任務",
   "main": "index.js",
   "scripts": {
+    "start":"node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node":"v16.x"
   },
   "repository": {
     "type": "git",
