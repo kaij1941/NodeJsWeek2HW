@@ -1,12 +1,12 @@
 const http = require('http');
-const mongoose =require('mongoose');
 const dotenv =require('dotenv');
-
+const mongoose = require('mongoose');
 const headers= require('./headers');
 const postModel =require('./models/postModel');
-
+const errorHandle =require('./errorHandle');
+const { restart } = require('nodemon');
 //資料庫連線
-mongoose.connect('mongodb://localhost:27017/hotel')
+mongoose.connect('mongodb://localhost:27017/DbPractice')
     .then(()=>{
         console.log("資料庫連線成功")
     }).catch((error)=>{
@@ -21,13 +21,50 @@ const requestListener = async(req,res)=>{
         body+=chunk;
     })
 
-    if (req.url == '/HW2' && req.method == "POST") {
-        res.end('end', async()=>{
+    if(req.url == '/HW2' && req.method == "GET"){
+        try {
+            const postsData = await postModel.find();  
+            res.write(JSON.stringify({
+                "status":"success",
+                "data":postsData
+            }))     
+            res.end();
+        } catch (error) {
+            console.log(error);
+            errorHandle(res,400,'讀取資料錯誤');  
+        } 
+    }
+    else if (req.url == '/HW2' && req.method == "POST") {
+        req.on('end', async()=>{
             try {
                 const data =JSON.parse(body);
-                console.log(data);
+                if (!data.articleContent) {
+                    errorHandle(res,400,'文章內容為必填');
+                    return;
+                }
+
+                if(!data.userName){
+                    errorHandle(res,400,'發文者為必填');
+                    return;
+                }
+
+                const newArticle= await postModel.create({
+                    "articleContent":data.articleContent,
+                    "articlePhoto":data.articlePhoto,
+                    "userName":data.userName,
+                    "userPhoto":data.userPhoto,
+                    "likes":data.likes
+                });
+
+                res.writeHead(200, headers);
+                res.write(JSON.stringify({
+                  "status": "success",
+                  "data": newArticle
+                }))
+                res.end();
             } catch (error) {
-                console.log(error);
+                errorHandle(res,400,'新增貼文錯誤');
+                return;
             }
         });
     }else if(req.method == "OPTIONS"){
@@ -35,12 +72,8 @@ const requestListener = async(req,res)=>{
         res.end();
     }
     else{       
-        res.writeHead(404,headers);
-        res.write(JSON.stringify({
-            "status":"false",
-            "message":"無此網站路由"
-        }))
-        res.end()
+        errorHandle(res,404,'發文者為必填');
+        return;
     }
 
 }
