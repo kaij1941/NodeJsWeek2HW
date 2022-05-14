@@ -5,15 +5,18 @@ const headers= require('./headers');
 const postModel =require('./models/postModel');
 const errorHandle =require('./errorHandle');
 const { restart } = require('nodemon');
+
+//環境設定
+dotenv.config({path: './config.env'});
+
+const DB= process.env.DATABASE.replace('<password>',process.env.DATABASE_PASSWORD)
 //資料庫連線
-mongoose.connect('mongodb://localhost:27017/DbPractice')
+mongoose.connect(DB)
     .then(()=>{
         console.log("資料庫連線成功")
     }).catch((error)=>{
         console.log(error);
     })
-//環境設定
-dotenv.config({path: './config.env'});
 
 const requestListener = async(req,res)=>{
     let body=""
@@ -79,4 +82,4 @@ const requestListener = async(req,res)=>{
 }
 
 const server = http.createServer(requestListener);
-server.listen(3005);
+server.listen(process.env.PORT || 3005);
