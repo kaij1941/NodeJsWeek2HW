@@ -4,8 +4,6 @@ const mongoose = require('mongoose');
 const headers= require('./headers');
 const postModel =require('./models/postModel');
 const errorHandle =require('./errorHandle');
-const { restart } = require('nodemon');
-
 //環境設定
 dotenv.config({path: './config.env'});
 
@@ -24,7 +22,7 @@ const requestListener = async(req,res)=>{
         body+=chunk;
     })
 
-    if(req.url == '/HW2' && req.method == "GET"){
+    if(req.url == '/posts' && req.method == "GET"){
         try {
             const postsData = await postModel.find();  
             res.write(JSON.stringify({
@@ -37,7 +35,7 @@ const requestListener = async(req,res)=>{
             errorHandle(res,400,'讀取資料錯誤');  
         } 
     }
-    else if (req.url == '/HW2' && req.method == "POST") {
+    else if (req.url == '/posts' && req.method == "POST") {
         req.on('end', async()=>{
             try {
                 const data =JSON.parse(body);
@@ -69,13 +67,88 @@ const requestListener = async(req,res)=>{
                 errorHandle(res,400,'新增貼文錯誤');
                 return;
             }
+        });       
+    }else if (req.url.startsWith('/posts/') && req.method == "PATCH") {
+        req.on('end', async()=>{
+            try {
+                const data =JSON.parse(body);
+
+                const id = req.url.split('/').pop();
+                const postCheckResult = await postModel.findById(id)
+                if (!postCheckResult) {
+                    errorHandle(res,400,'找不到此貼文');
+                    return;
+                } 
+                const newArticle= await postModel.findByIdAndUpdate(
+                    id,
+                {
+                    "articleContent":data.articleContent,
+                    "articlePhoto":data.articlePhoto,
+                    "userName":data.userName,
+                    "userPhoto":data.userPhoto,
+                    "likes":data.likes
+                },{
+                    new:true
+                });
+
+                res.writeHead(200, headers);
+                res.write(JSON.stringify({
+                  "status": "success",
+                  "data": newArticle
+                }))
+                res.end();
+            } catch (error) {
+                errorHandle(res,400,'新增貼文錯誤');
+                return;
+            }
         });
+        
+    }else if (req.url == '/posts' && req.method == "DELETE") {
+        req.on('end', async()=>{
+            try {
+                const newArticle= await postModel.deleteMany({});
+                const afterDelete = await postModel.find() 
+                res.writeHead(200, headers); 
+                res.write(JSON.stringify({
+                  "status": "success",
+                  "data": afterDelete
+                }))
+                res.end();
+            } catch (error) {
+                errorHandle(res,400,'新增貼文錯誤');
+                return;
+            }
+        });       
+    }else if (req.url.startsWith('/posts/') && req.method == "DELETE") {
+        req.on('end', async()=>{
+            try {
+                const id = req.url.split('/').pop();
+                const postCheckResult = await postModel.findById(id)
+                if (!postCheckResult) {
+                    errorHandle(res,400,'找不到此貼文');
+                    return;
+                }   
+                
+                const newArticle  = await postModel.findByIdAndDelete(id);
+                const afterDelete = await postModel.find() ;
+                res.writeHead(200, headers);
+                res.write(JSON.stringify({
+                  "status": "success",
+                  "data": afterDelete
+                }))
+                res.end();
+            } catch (error) {
+                errorHandle(res,400,'刪除貼文錯誤');
+                return;
+            }
+        });
+        
     }else if(req.method == "OPTIONS"){
         res.writeHead(200,headers);
         res.end();
     }
     else{       
-        errorHandle(res,404,'發文者為必填');
+        errorHandle(res,404,'找不到路由');
         return;
     }
 

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const postSchema =new mongoose.Schema({
     articleContent:{
         type:String,
-        requird:[true,'貼文內容未填寫']
+        required:[true,'貼文內容未填寫']
     },
     articlePhoto:{
         type:String,
@@ -24,6 +24,9 @@ const postSchema =new mongoose.Schema({
         default:Date.now,
         select:false
     }
+},
+{
+  versionKey: false
 })
 
 
