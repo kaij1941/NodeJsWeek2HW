@@ -9,15 +9,15 @@ const postSchema =new mongoose.Schema({
     },
     userName:{
         type:String,
-        requird:[true,'貼文者名稱未填寫']
+        required:[true,'貼文者名稱未填寫']
     },
     userPhoto:{
         type:String,
-        requird:[true,'貼文者照片未填寫']
+        required:[true,'貼文者照片未填寫']
     },
     likes:{
         type:Number,
-        requird:[true,'按讚數為必填,至少為零']
+        required:[true,'按讚數為必填,至少為零']
     },
     creatTime:{
         type:Date,
