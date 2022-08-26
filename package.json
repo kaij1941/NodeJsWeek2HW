@@ -22,7 +22,7 @@
   "homepage": "https://github.com/kaij1941/NodeJsWeek2HW#readme",
   "dependencies": {
     "dotenv": "^16.0.1",
-    "mongoose": "^6.3.3",
+    "mongoose": "^6.4.6",
     "nodemon": "^2.0.16"
   }
 }
